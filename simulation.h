@@ -1,53 +1,57 @@
 #pragma once
 
-// represente un point ou un vecteur mathématique
-typedef struct Vec2 {
-	float x, y;
+#include "stdbool.h"
 
+// structures de données --------------------------------------
+
+// represente un point ou un vecteur mathématique
+typedef struct Vec2
+{
+	float x, y;
 } Vec2;
 
 // represente une boite de collisison
-typedef struct AABB {
+typedef struct AABB
+{
 	Vec2 position;
 	Vec2 taille;
-
 } AABB;
 
 // un points de notre simulation
-typedef struct PointNewton {
+typedef struct PointNewton
+{
 	Vec2 position;
 	Vec2 vitesse;
 	float masse;
 	short voisins[8];
-
 } PointNewton;
 
 // polygone statique
-typedef struct Polygone {
+typedef struct Polygone
+{
 	short nb_points;
 	Vec2 *pts;
 	AABB collision;
-
 } Polygone;
 
 // champ vectoriel
-typedef struct ChampsVec {
+typedef struct ChampsVec
+{
 	Vec2 force;
 	Vec2 position;
 	Vec2 taille;
-
 } ChampsVec;
 
 // corp souple (ce qu'on va simuler)
-typedef struct CorpSouple {
+typedef struct CorpSouple
+{
 	short nb_points;
 	PointNewton *pts;
-
 } CorpSouple;
 
 // informations sur la simulation
-typedef struct Simulation {
-
+typedef struct Simulation
+{
 	CorpSouple corp;
 
 	short nb_polygones;
@@ -57,3 +61,18 @@ typedef struct Simulation {
 	ChampsVec *champs;
 
 } Simulation;
+
+
+// fonctions --------------------------------------------------
+
+// initialise un objet Simulation depuis un fichier chemin
+// (const char* est une chaine de charactères)
+void init_simulation( Simulation *simulation, const char *chemin );
+
+// libère la mémoire
+void supr_simulation( Simulation *simulation );
+
+// simule une frame de la simulation
+// dt est le temps depuis la dernière frame en secondes
+void simuler_frame( Simulation *simulation, float dt );
+
