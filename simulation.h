@@ -2,6 +2,8 @@
 
 #include "stdbool.h"
 
+#define VOISINS_MAX 8
+
 // structures de données --------------------------------------
 
 // represente un point ou un vecteur mathématique
@@ -23,7 +25,7 @@ typedef struct PointNewton
 	Vec2 position;
 	Vec2 vitesse;
 	float masse;
-	short voisins[8];
+	short voisins[VOISINS_MAX];
 } PointNewton;
 
 // polygone statique

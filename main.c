@@ -2,13 +2,6 @@
 
 #include "SDL.h"
 
-
-// toute la logique 
-void logique( Simulation *simulation )
-{
-	simuler_frame( simulation, 1.0f / 60.0f );
-}
-
 void affichage( Simulation *simulation )
 {
 	// TODO: affichage
@@ -20,14 +13,19 @@ int main()
 	init_simulation( &simulation, "./niveau.txt");
 
 	bool fini = false;
+	float dt = 0.01f;
 
 	while( !fini ) {
 
-		logique( &simulation );
+
+		// GESTION ENTREES SDL
+		fini = true;
+
+		// LOGIQUE APPLICATION
+		simuler_frame( &simulation, 1.0f / 60.0f );
 		affichage( &simulation );
 
-		// temporaire
-		fini = true;
+		// CALCUL DT
 
 	}
 
