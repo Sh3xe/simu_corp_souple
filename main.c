@@ -2,6 +2,17 @@
 
 #include "SDL.h"
 
+bool init_sdl()
+{
+
+	return true;
+}
+
+void supr_sdl()
+{
+
+}
+
 void affichage( Simulation *simulation )
 {
 	// TODO: affichage
@@ -9,6 +20,9 @@ void affichage( Simulation *simulation )
 
 int main()
 {
+
+	init_sdl();
+
 	Simulation simulation;
 	init_simulation( &simulation, "./niveau.txt");
 
