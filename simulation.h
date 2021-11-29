@@ -1,6 +1,7 @@
 #pragma once
 
-#include "stdbool.h"
+#include <stdbool.h>
+#include <stdlib.h>
 
 #define VOISINS_MAX 8
 
