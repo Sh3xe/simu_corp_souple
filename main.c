@@ -62,27 +62,22 @@ void affichage( ContexteSDL *contexte, Simulation *simulation )
 
 	SDL_SetRenderDrawColor( contexte->renderer, 255, 0, 0, 255);
 
-	for( int i = 0; i < simulation->corp.nb_points; ++i)
+	for( int i = 0; i < simulation->corps.nb_ressors; ++i)
 	{
-		// affichage du corp souple
+		// affichage du corps souple
 
-		PointNewton *p = &simulation->corp.pts[i];
+		Ressort *r = &simulation->corps.ressorts[i];
 
-		SDL_RenderDrawPoint( contexte->renderer, (int)p->position.x, (int)p->position.y );
+		Point *p1 = &simulation->corps.pts[r->p1];
+		Point *p2 = &simulation->corps.pts[r->p2];
 
-		for( int j = 0; j < VOISINS_MAX; ++j ) 
-		{
+		SDL_RenderDrawPoint( contexte->renderer, (int)p1->position.x, (int)p1->position.x );
+		SDL_RenderDrawPoint( contexte->renderer, (int)p2->position.x, (int)p2->position.x );
 
-			if( p->voisins[j] == -1 ) break;
-
-			PointNewton *v = &simulation->corp.pts[ p->voisins[j] ];
-
-			SDL_RenderDrawLine( contexte->renderer,
-				(int)p->position.x, (int)p->position.y,
-				(int)v->position.x, (int)v->position.y
-			);
-
-		}
+		SDL_RenderDrawLine( contexte->renderer,
+			(int)p1->position.x, (int)p1->position.x,
+			(int)p2->position.x, (int)p2->position.x
+		);
 
 	}
 
@@ -106,15 +101,12 @@ int main()
 	Simulation simulation;
 	init_simulation( &simulation, "./niveau.txt");
 
-	CorpSouple corp_tempo;
-	corp_tempo.nb_points = 0;
-
-	simulation.nb_champs = 0;
-	simulation.nb_polygones = 0;
-	simulation.corp = corp_tempo;
-
 	bool fini = false;
 	float dt = 0.01f;
+	uint64_t t0, t1;
+
+	t0 = SDL_GetPerformanceCounter() - 1;
+	t1 = SDL_GetPerformanceCounter();
 
 	// BOUCLE DE LA SIMULATION
 	while( !fini )
@@ -127,14 +119,15 @@ int main()
 		}
 
 		// LOGIQUE APPLICATION
-		//simuler_frame( &simulation, 1.0f / 60.0f );
+		simuler_frame( &simulation, dt );
 		affichage( &contexte, &simulation );
 
-		
 
-		// CALCUL DT
-		
+		// calcul dt
+		t0 = t1;
+		t1 = SDL_GetPerformanceCounter();
 
+		dt = (float)((t1 - t0) * 1000.0f) / (float)SDL_GetPerformanceFrequency();
 	}
 
 	supr_simulation( &simulation );

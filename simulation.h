@@ -3,8 +3,6 @@
 #include <stdbool.h>
 #include <stdlib.h>
 
-#define VOISINS_MAX 8
-
 // structures de données --------------------------------------
 
 // represente un point ou un vecteur mathématique
@@ -21,13 +19,13 @@ typedef struct AABB
 } AABB;
 
 // un points de notre simulation
-typedef struct PointNewton
+typedef struct Point
 {
-	Vec2 position;
+	Vec2 force;
 	Vec2 vitesse;
+	Vec2 position;
 	float masse;
-	short voisins[VOISINS_MAX];
-} PointNewton;
+} Point;
 
 // polygone statique
 typedef struct Polygone
@@ -45,17 +43,27 @@ typedef struct ChampsVec
 	Vec2 taille;
 } ChampsVec;
 
+typedef struct Ressort
+{
+	short p1, p2;
+	float k;
+	float l0;
+} Ressort;
+
 // corp souple (ce qu'on va simuler)
-typedef struct CorpSouple
+typedef struct Corps
 {
 	short nb_points;
-	PointNewton *pts;
-} CorpSouple;
+	Point *pts;
+
+	short nb_ressors;
+	Ressort *ressorts;
+} Corps;
 
 // informations sur la simulation
 typedef struct Simulation
 {
-	CorpSouple corp;
+	Corps corps;
 
 	short nb_polygones;
 	Polygone *polygones;
@@ -78,4 +86,3 @@ void supr_simulation( Simulation *simulation );
 // simule une frame de la simulation
 // dt est le temps depuis la dernière frame en secondes
 void simuler_frame( Simulation *simulation, float dt );
-
