@@ -1,1 +1,1 @@
-gcc -Iinclude main.c simulation.c graphismes.c -lSDL2 -o prog
+gcc -Iinclude main.c simulation.c graphismes.c -lm -lSDL2 -g -o prog

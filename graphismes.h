@@ -1,7 +1,7 @@
 #pragma once
 
-
-#include <SDL.h>
+#include "simulation.h"
+#include "SDL.h"
 #include <stdbool.h>
 
 typedef struct ContexteSDL {
@@ -15,3 +15,6 @@ bool init_sdl( ContexteSDL *contexte );
 
 // détruit SDL
 void supr_sdl( ContexteSDL *contexte );
+
+// affiche sur une fenetre la simulation
+void affichage( ContexteSDL *contexte, Simulation *simulation );

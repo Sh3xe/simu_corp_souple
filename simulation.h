@@ -21,11 +21,19 @@ typedef struct AABB
 // un points de notre simulation
 typedef struct Point
 {
-	Vec2 force;
-	Vec2 vitesse;
 	Vec2 position;
+	Vec2 vitesse;
+	Vec2 force;
 	float masse;
 } Point;
+
+// un Ressort de notre simulation
+typedef struct Ressort
+{
+	short p1, p2;
+	float k;
+	float l0;
+} Ressort;
 
 // polygone statique
 typedef struct Polygone
@@ -43,21 +51,15 @@ typedef struct ChampsVec
 	Vec2 taille;
 } ChampsVec;
 
-typedef struct Ressort
-{
-	short p1, p2;
-	float k;
-	float l0;
-} Ressort;
-
 // corp souple (ce qu'on va simuler)
 typedef struct Corps
 {
 	short nb_points;
 	Point *pts;
 
-	short nb_ressors;
-	Ressort *ressorts;
+	short nb_ressorts;
+	Ressort *rst;
+
 } Corps;
 
 // informations sur la simulation
@@ -76,9 +78,10 @@ typedef struct Simulation
 
 // fonctions --------------------------------------------------
 
+
 // initialise un objet Simulation depuis un fichier chemin
 // (const char* est une chaine de charactères)
-void init_simulation( Simulation *simulation, const char *chemin );
+bool init_simulation( Simulation *simulation, const char *chemin );
 
 // libère la mémoire
 void supr_simulation( Simulation *simulation );
@@ -86,3 +89,4 @@ void supr_simulation( Simulation *simulation );
 // simule une frame de la simulation
 // dt est le temps depuis la dernière frame en secondes
 void simuler_frame( Simulation *simulation, float dt );
+
