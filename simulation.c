@@ -4,40 +4,31 @@
 #include <math.h>
 #include <stdio.h>
 
+/*
+	LISTE DES TRUCS A FAIRE:
+
+	arnaud: finir infos_projection et ajouter le calcul de la normale dans les polygones
+	alain: finir la physique
+	françois: non
+*/
+
 int const g = 9.81;
 
-// renvoie true s'il y a collision entre point et polygone
-bool collision( Polygone *polygone, Vec2 point )
-{
+// structures UTILITAIRES
 
-	return false;
-}
+typedef struct InfoProjections {
+	Vec2 plus_proche;
+	bool projection_touche;
+} InfoProjections;
 
-// renvoie le plus le plus proche de p sur le segment [ab]
-Vec2 projection_point( Vec2 a, Vec2 b, Vec2 p)
-{
-	Vec2 v = {0.0f, 0.0f};
-
-	return v;
-}
-
-// renvoie le point le plus proche de p sur le segment [ab]
-Vec2 pt_plus_proche( Polygone *polygone, Vec2 point ) {
-
-	for( int i = 0; i < polygone->nb_points; ++i )
-	{
-		
-	}
-
-	return point;
-
-}
+// FONCTIONS UTILITAIRES ---------------------------------
 
 // renvoie l'inverse de la racine carré de number en O(1)
+// avec une précision de +ou- 1%
 float Q_rsqrt( float number )
 {
 	// implémentation de l'algorithme racine carré inverse rapide O(1)
-	// c.f. wikipedia
+	// c.f. wikipedia "fast inverse squareroot"
 
 	long i;
 	float x2, y;
@@ -57,6 +48,116 @@ float distance(Vec2 *posA, Vec2 *posB)
 {
 	return sqrt( pow(posA->x - posB->x,2) + pow(posA->y - posB->y,2) );
 }
+
+// renvoie la distance au carré entre a et b
+float distance2( Vec2 a, Vec2 b )
+{
+	return pow((b.x - a.x), 2) + pow((b.y - a.y), 2);
+}
+
+float longueur( Vec2 p )
+{
+	return sqrt( p.x*p.x + p.y*p.y );
+}
+
+// renvoie la longueur au carré
+float longueur2( Vec2 p )
+{
+	return p.x*p.x + p.y*p.y;
+}
+
+// normalise le vecteur vec
+// <=> longueur(vec) = 1 & angle(vec) change pas
+void normaliser_vec( Vec2 *vec )
+{
+	float l = longueur( *vec );
+	vec->x /= l;
+	vec->y /= l;
+}
+
+// meme chose que normaliser_vec
+// mais avec l'algorithme de l'inverse rapide,
+// c.f Q_rsqrt
+void normaliser_vec_rapide( Vec2 *vec )
+{
+	float rc = Q_rsqrt( longueur2(*vec) );
+	vec->x *= rc;
+	vec->y *= rc;
+}
+
+// renvoie true si le point p est
+// dans la boite aabb
+bool aabb_point( Vec2 p, AABB aabb )
+{
+	return
+		p.x > aabb.position.x && p.x < aabb.position.x + aabb.taille.x &&
+		p.y > aabb.position.y && p.y < aabb.position.y + aabb.taille.y;
+}
+
+// renvoie les infos sur la projection
+// reponse.projection_touche: si la droite d'équation y = p.x touche [ab]
+// reponse.plus_proche: le point le plus proche de p sur [ab]
+InfoProjections infos_projection( Vec2 a, Vec2 b, Vec2 p )
+{
+	// TODO: IMPLEMENTER LA FONCTION
+
+	bool projection_touche = 
+		((a.y < p.y && b.y > p.y) || (b.y < p.y && a.y > p.y))
+		&& a.x < p.x && b.x < p.x;
+
+	InfoProjections rep =
+	{
+		{ 0.0f, 0.0f },
+		projection_touche
+	};
+
+	return rep;
+}
+
+// renvoie le point le plus proche de p, qui est à l'exterieur de pg
+Vec2 collision( Vec2 p, Polygone *pg )
+{
+	InfoProjections infos = infos_projection( pg->pts[0], pg->pts[pg->nb_points-1], p );
+
+	// point le plus proche de p sur le polygone
+	Vec2 proche = infos.plus_proche;
+	// on utilise la distance au carré pour économiser du temps
+	float dist2_mini = distance2(proche, p); 
+
+	int total = (int)infos.projection_touche; // c.f. infos_projection
+	for( int i = 0; i < pg->nb_points - 1; ++i )
+	{
+		infos = infos_projection( pg->pts[i], pg->pts[i+1], p );
+
+		// récupère le point le plus proche
+		float dist2 = distance2(infos.plus_proche, p );
+		if( dist2 < dist2_mini )
+		{
+			dist2_mini = dist2;
+			proche = infos.plus_proche;
+		}
+
+		total += (int)infos.projection_touche;
+	}
+
+	// si total est pair: pas de collision,
+	// on renvoie le vecteur nul
+	if( total % 2 == 0 )
+	{
+		proche.x = p.x;
+		proche.y = p.y;
+	}
+
+	Vec2 diff = 
+	{
+		proche.x - p.x,
+		proche.y - p.y
+	};
+
+	return diff;
+}
+
+// FONCTIONS D'INITIALISATION / SUPRESSIONS --------------
 
 // créer une boite assès grande pour contenir tout les points de pts
 AABB crea_aabb(Vec2 *pts, int taille)
@@ -126,6 +227,7 @@ void crea_corps(
 	// longueure entre chaque points (utilisé pour initialiser l0)
 	float tx = w / (float)sx;
 	float ty = h / (float)sy;
+	float txy = sqrt(tx*tx + ty*ty);
 
 	Ressort r =
 	{ // TODO: tatonner pour trouver une valeure qui va (pour l0)
@@ -143,7 +245,7 @@ void crea_corps(
 			r.p2 = i+1 + (j)*(sx+2);
 			corps->rst[id_r+0] = r;
 
-			r.l0 = sqrt(tx*tx + ty*ty);
+			r.l0 = txy;
 			r.p2 = i+1 + (j+1)*(sx+2);
 			corps->rst[id_r+1] = r;
 
@@ -156,7 +258,7 @@ void crea_corps(
 		}
 		else if( j == sy + 1)
 		{
-			r.l0 = tx;
+			r.l0 = txy;
 			r.p2 = i+1 + (j-1)*(sx+2);
 			corps->rst[id_r+0] = r;
 
@@ -168,11 +270,11 @@ void crea_corps(
 		}
 		else
 		{
-			r.l0 = tx;
+			r.l0 = txy;
 			r.p2 = i+1 + (j+1)*(sx+2);
 			corps->rst[id_r+0] = r;
 
-			r.l0 = tx;
+			r.l0 = txy;
 			r.p2 = i+1 + (j-1)*(sx+2);
 			corps->rst[id_r+1] = r;
 
@@ -192,7 +294,7 @@ void crea_corps(
 	{
 		r.p1 = sx+1 + (j)*(sx+2);
 		r.p2 = sx+1 + (j+1)*(sx+2);
-		r.l0 = tx;
+		r.l0 = ty;
 
 		corps->rst[id_r] = r;
 		++id_r;
@@ -246,7 +348,7 @@ bool init_simulation( Simulation *simulation, const char *chemin ) {
 	{
 		for (int j = 0; j < simulation->polygones[i].nb_points; j++)
 		{
-			fscanf(f,"%f %f ", &simulation->polygones[i].pts[j].x , &simulation->polygones[i].pts[j].y );
+			if (fscanf(f,"%f %f ", &simulation->polygones[i].pts[j].x , &simulation->polygones[i].pts[j].y ) != 2) return false;
 		}
 		//crea_AABB
 		simulation->polygones[i].collision = crea_aabb( simulation->polygones[i].pts , simulation->polygones[i].nb_points);
@@ -254,7 +356,7 @@ bool init_simulation( Simulation *simulation, const char *chemin ) {
 	
 
 	//recup les infos depuis le fichier pour la creation des champsVec
-	fscanf(f,"%hd ", &simulation->nb_champs);
+	if( fscanf(f,"%hd ", &simulation->nb_champs) != 1) return false;
 	
 	simulation->champs = (ChampsVec*)malloc( sizeof(ChampsVec) * simulation->nb_champs );
 
@@ -264,10 +366,10 @@ bool init_simulation( Simulation *simulation, const char *chemin ) {
 		ChampsVec *c = &simulation->champs[i];
 		
 		if( fscanf(f, "%f %f %f %f %f %f",
-			&c->position.x,
-			&c->position.y,
-			&c->taille.x,
-			&c->taille.y,
+			&c->aabb.position.x,
+			&c->aabb.position.y,
+			&c->aabb.taille.x,
+			&c->aabb.taille.y,
 			&c->force.x,
 			&c->force.y) != 6) return false;
 	}
@@ -288,6 +390,9 @@ void supr_simulation( Simulation *simulation )
 
 }
 
+// SIMULATION --------------------------------------------
+
+
 void simuler_frame( Simulation *simulation, float dt )
 {
 	//printf("%f %f\n", simulation->corps.pts[0].position.x, simulation->corps.pts[0].position.y);
@@ -298,7 +403,18 @@ void simuler_frame( Simulation *simulation, float dt )
 		// on initialise la force à 0
 		simulation->corps.pts[i].force.x = 0 ;
 		// on ajoute la force interne de pesanteur
-		simulation->corps.pts[i].force.y = simulation->corps.pts[i].masse * g;		
+		simulation->corps.pts[i].force.y = simulation->corps.pts[i].masse * g;
+
+		// si le point est dans un champs de force, on ajoute la force
+		// du champs au point.
+		for( int j = 0; j < simulation->nb_champs; ++j )
+		{
+			if( aabb_point( simulation->corps.pts[i].position, simulation->champs[j].aabb) )
+			{
+				simulation->corps.pts[i].force.x += simulation->champs[j].force.x;
+				simulation->corps.pts[i].force.y += simulation->champs[j].force.y;
+			}
+		}		
 	}
 	
 	// calcul de la force...
@@ -308,9 +424,47 @@ void simuler_frame( Simulation *simulation, float dt )
 		Ressort *r1 = &simulation->corps.rst[i] ;
 		Point *p1 = &simulation->corps.pts[r1->p1];
 		Point *p2 = &simulation->corps.pts[r1->p2];
+		/*
 		float force = - r1->k * ( distance( &p1->position , &p2->position ) - r1->l0 ) ;
-		float angle1 = atan2( p1->position.x - p2->position.x , p1->position.y - p2->position.y );
-		float angle2 = atan2( p2->position.x - p1->position.x , p2->position.y - p1->position.y );
+		float angle1 = atan2( p2->position.x - p1->position.x , p2->position.y - p1->position.y );
+		float angle2 = atan2( p1->position.x - p2->position.x , p1->position.y - p2->position.y );
+		//p1->force.x += cos(angle1) * force;
+		p1->force.y += sin(angle1) * force;
+		//p2->force.x += cos(angle2) * force;
+		p2->force.y += sin(angle2) * force;
+		*/
+
+		// test arnaud -- MEH
+		
+		Vec2 ab = 
+		{
+			p2->position.x - p1->position.x,
+			p2->position.y - p1->position.y,
+		};
+
+		Vec2 vab = 
+		{
+			p2->vitesse.x - p1->vitesse.x,
+			p2->vitesse.y - p1->vitesse.y,
+		};
+
+		normaliser_vec_rapide(&ab);
+
+		float lg = distance(&p1->position, &p2->position);
+		float f = r1->k * (lg - r1->l0) * 20.0f;
+
+		f += 1.0f * (ab.x * vab.x + ab.y * vab.y);
+
+		f /= 2;
+
+		//printf("%f %f \n", r1->l0, lg);
+
+		p1->force.x += f * ab.x;
+		p1->force.y += f * ab.y;
+
+		p2->force.x -= f * ab.x;
+		p2->force.y -= f * ab.y;
+
 	}
 	
 	// calcul de l'accéleration, de la vitesse, gestion des collisions
@@ -324,9 +478,35 @@ void simuler_frame( Simulation *simulation, float dt )
 		p->vitesse.y += (p->force.y / p->masse) * dt;
 		p->position.x += p->vitesse.x * dt;
 		p->position.y += p->vitesse.y * dt;
-
-		// TODO:arnaud -- gérer les collisions
+		//temporaire 
+		//if (p->position.y<0) p->position.y=0;
+		//if (p->vitesse.y<0) p->vitesse.y=0;
 		
+		for( int j = 0; j < simulation->nb_polygones; ++j )
+		{
+			Polygone *pg = &simulation->polygones[j];
+
+			// première étape: on teste si chaque points est dans
+			// l'une des boites du polygones ( très rapide, permet
+			// de gagner du temps )
+			if( aabb_point(p->position, pg->collision))
+			{ // si c'est le cas, alors on va tester les collisions
+
+				// le vecteur qui va de p vers le point le plus proche
+				// du polygone si il y a collision, sinon le vecteur nul
+				Vec2 diff = collision( p->position, pg );
+
+				//p->position.x += diff.x;
+				//p->position.y += diff.y;
+
+				// sur le plus long terme, il faudrait connaitre
+				// la normale au polygone.
+				//p->vitesse.x += diff.x;
+				//p->vitesse.y += diff.y;
+				
+			}
+		}
+
 	}
 
 }

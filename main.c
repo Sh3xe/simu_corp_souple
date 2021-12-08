@@ -1,6 +1,8 @@
 #include "simulation.h"
 #include "graphismes.h"
 
+const float ips = 60.0f;
+
 int main()
 {
 	// INITIALISATION SDL
@@ -21,8 +23,10 @@ int main()
 	}
 
 	bool fini = false;
-	float dt = 0.01f;
+	float dt = 0.0001;
 	uint64_t t0, t1;
+	uint64_t frames = 0;
+	float timer = 0.0f, temps_total = 0.0f; // utilisé pour afficher des informations toutes les secondes
 
 	t0 = SDL_GetPerformanceCounter() - 1;
 	t1 = SDL_GetPerformanceCounter();
@@ -46,7 +50,27 @@ int main()
 		t1 = SDL_GetPerformanceCounter();
 
 		dt = (float)((t1 - t0)) / (float)SDL_GetPerformanceFrequency();
+
+		// limitations des ips
+		if( dt < (1.0f / ips) )
+		{
+			int ms = (1.0f / ips) * 1000 - dt * 1000;
+			SDL_Delay( ms );
+		}
+
+		if( timer > 1.5f )
+		{
+			timer = 0.0f;
+			//printf("%f\n", frames / temps_total);
+		}
+
+		timer += dt;
+		temps_total += dt;
+		++frames;
 	}
 
+	supr_sdl( &contexte );
+	supr_simulation( &simulation );
+	
 	return 0;
 }

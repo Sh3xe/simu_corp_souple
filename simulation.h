@@ -47,8 +47,7 @@ typedef struct Polygone
 typedef struct ChampsVec
 {
 	Vec2 force;
-	Vec2 position;
-	Vec2 taille;
+	AABB aabb;
 } ChampsVec;
 
 // corp souple (ce qu'on va simuler)
@@ -78,7 +77,6 @@ typedef struct Simulation
 
 // fonctions --------------------------------------------------
 
-
 // initialise un objet Simulation depuis un fichier chemin
 // (const char* est une chaine de charactères)
 bool init_simulation( Simulation *simulation, const char *chemin );
@@ -89,4 +87,3 @@ void supr_simulation( Simulation *simulation );
 // simule une frame de la simulation
 // dt est le temps depuis la dernière frame en secondes
 void simuler_frame( Simulation *simulation, float dt );
-

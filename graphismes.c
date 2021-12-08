@@ -14,7 +14,7 @@ bool init_sdl( ContexteSDL *contexte )
 	if( contexte->window == NULL )
 		return false;
 
-	contexte->renderer = SDL_CreateRenderer( contexte->window, -1, 0);
+	contexte->renderer = SDL_CreateRenderer( contexte->window, -1, SDL_RENDERER_ACCELERATED);
 	contexte->video_mode = SDL_GetWindowSurface( contexte->window );
 
 	if( !contexte->video_mode ) return false;
@@ -43,10 +43,10 @@ void ligne( ContexteSDL *contexte, float x0, float y0, float x1, float y1 )
 
 }
 
-void point( Vec2 p )
-{
-
-}
+//void point( Vec2 p )
+//{
+//
+//}
 
 // affichage de la simulation
 void affichage( ContexteSDL *contexte, Simulation *simulation )
@@ -61,11 +61,11 @@ void affichage( ContexteSDL *contexte, Simulation *simulation )
 		// affichage des champs vectoriels
 		ChampsVec *c = &simulation->champs[i];
 
-		int xmin = (int)c->position.x;
-		int ymin = (int)c->position.y;
+		int xmin = (int)c->aabb.position.x;
+		int ymin = (int)c->aabb.position.y;
 
-		int xmax = (int)(c->position.x + c->taille.x);
-		int ymax = (int)(c->position.y + c->taille.y);
+		int xmax = (int)(c->aabb.position.x + c->aabb.taille.x);
+		int ymax = (int)(c->aabb.position.y + c->aabb.taille.y);
 
 		ligne( contexte,
 			xmin, ymin, xmin, ymax
