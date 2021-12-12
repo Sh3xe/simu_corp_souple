@@ -1,4 +1,4 @@
-# simulation d'un corp souple (ne marche pas)
+# simulation d'un corp souple (marche moyen)
 
 Bah sa simule un rectangle sauf qu'il est souple.
 
