@@ -124,6 +124,5 @@ void affichage( ContexteSDL *contexte, Simulation *simulation )
 	}
 
 	SDL_RenderPresent( contexte->renderer );
-	SDL_UpdateWindowSurface( contexte->window );
 
 }

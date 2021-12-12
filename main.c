@@ -42,7 +42,7 @@ int main()
 		}
 
 		// LOGIQUE APPLICATION
-		simuler_frame( &simulation, dt );
+		simuler_frame( &simulation, 0.005 );
 		affichage( &contexte, &simulation );
 
 		// calcul dt
