@@ -7,7 +7,7 @@ bool init_sdl( ContexteSDL *contexte )
 
 	contexte->window = SDL_CreateWindow(
 		"simulation corp souple",
-		0, 0, 500, 300,
+		0, 0, 1280, 720,
 		SDL_WINDOW_RESIZABLE
 	);
 
